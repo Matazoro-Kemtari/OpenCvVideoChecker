@@ -455,12 +455,28 @@ namespace OpenCvVideoTester
             var feature = AKAZE.Create();
 
             // テンプレート画像トリミング位置
-            var escalator1st = new Rect(833, 633, 540, 290);
+            // エスカレーター
+            var escalator1st = new Rect(833, 653, 540, 290);
             var escalator1st_view = new Rect(escalator1st.X / 2, escalator1st.Y / 2, escalator1st.Width / 2, escalator1st.Height / 2);
-            var escalator2nd = new Rect(1560, 667, 452, 275);
+            var escalator2nd = new Rect(1560, 687, 452, 275);
             var escalator2nd_view = new Rect(escalator2nd.X / 2, escalator2nd.Y / 2, escalator2nd.Width / 2, escalator2nd.Height / 2);
-            var escalator3rd = new Rect(2058, 714, 373, 245);
+            var escalator3rd = new Rect(2058, 734, 373, 245);
             var escalator3rd_view = new Rect(escalator3rd.X / 2, escalator3rd.Y / 2, escalator3rd.Width / 2, escalator3rd.Height / 2);
+            // P1
+            var parking1fast = new Rect(1840, 314, 415, 275);
+            var parking1fast_view = new Rect(parking1fast.X / 2, parking1fast.Y / 2, parking1fast.Width / 2, parking1fast.Height / 2);
+            var parking1second = new Rect(2032, 237, 275, 415);
+            var parking1second_view = new Rect(parking1second.X / 2, parking1second.Y / 2, parking1second.Width / 2, parking1second.Height / 2);
+            // P2
+            var parking2fast = new Rect(1192, 194, 485, 275);
+            var parking2fast_view = new Rect(parking2fast.X / 2, parking2fast.Y / 2, parking2fast.Width / 2, parking2fast.Height / 2);
+            var parking2second = new Rect(1444, 65, 275, 485);
+            var parking2second_view = new Rect(parking2second.X / 2, parking2second.Y / 2, parking2second.Width / 2, parking2second.Height / 2);
+            // P3
+            var parking3fast = new Rect(300, 1292, 540, 290);
+            var parking3fast_view = new Rect(parking3fast.X / 2, parking3fast.Y / 2, parking3fast.Width / 2, parking3fast.Height / 2);
+            var parking3second = new Rect(480, 1075, 290, 540);
+            var parking3second_view = new Rect(parking3second.X / 2, parking3second.Y / 2, parking3second.Width / 2, parking3second.Height / 2);
 
             while (true)
             {
@@ -471,12 +487,28 @@ namespace OpenCvVideoTester
                 using var frame_view = frame.Resize(new Size(frame.Width / 2, frame.Height / 2));
 
                 // テンプレート画像トリミング位置描画
+                // エスカレーター
                 frame_view.Rectangle(escalator1st_view, new Scalar(0, 255, 0), 2);
                 frame_view.Rectangle(escalator2nd_view, new Scalar(0, 255, 0), 2);
                 frame_view.Rectangle(escalator3rd_view, new Scalar(0, 255, 0), 2);
                 frame_view.PutText("Trim to 1", escalator1st_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
                 frame_view.PutText("Trim to 2", escalator2nd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
                 frame_view.PutText("Trim to 3", escalator3rd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                // P1
+                frame_view.Rectangle(parking1fast_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 4", parking1fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                frame_view.Rectangle(parking1second_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 5", parking1second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                // P2
+                frame_view.Rectangle(parking2fast_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 6", parking2fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                frame_view.Rectangle(parking2second_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 7", parking2second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                // P3
+                frame_view.Rectangle(parking3fast_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 8", parking3fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                frame_view.Rectangle(parking3second_view, new Scalar(0, 255, 0), 2);
+                frame_view.PutText("Trim to 9", parking3second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
 
                 using var win = new Window("capture", frame_view);
 
@@ -535,19 +567,49 @@ namespace OpenCvVideoTester
                     string prefix = string.Empty;
                     switch (key)
                     {
-                        case 50:
+                        case 50: // 2キー
                             trimRect = escalator2nd;
-                            prefix = "escalator2nd_";
+                            prefix = nameof(escalator2nd) + "_";
                             break;
 
-                        case 51:
+                        case 51: // 3キー
                             trimRect = escalator3rd;
-                            prefix = "escalator3rd_";
+                            prefix = nameof(escalator3rd) + "_";
                             break;
 
-                        default:
-                            trimRect = escalator1st;
-                            prefix = "escalator1st_";
+                        case 52: // 4キー
+                            trimRect = parking1fast;
+                            prefix = nameof(parking1fast) + "_";
+                            break;
+
+                        case 53: // 5キー
+                            trimRect = parking1second;
+                            prefix = nameof(parking1second) + "_";
+                            break;
+
+                        case 54: // 6キー
+                            trimRect = parking2fast;
+                            prefix = nameof(parking2fast) + "_";
+                            break;
+
+                        case 55: // 7キー
+                            trimRect = parking2second;
+                            prefix = nameof(parking2second) + "_";
+                            break;
+
+                        case 56: // 8キー
+                            trimRect = parking3fast;
+                            prefix = nameof(parking3fast) + "_";
+                            break;
+
+                        case 57: // 9キー
+                            trimRect = parking3second;
+                            prefix = nameof(parking3second) + "_";
+                            break;
+
+                        default: // 1キー
+                            trimRect = parking1fast;
+                            prefix = nameof(parking1fast) + "_";
                             break;
                     }
                     using var trim = frame.SubMat(trimRect);
