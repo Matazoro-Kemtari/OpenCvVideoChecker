@@ -621,7 +621,7 @@ namespace OpenCvVideoTester
                     Cv2.ImShow("trim", featureImage);
 
                     // テンプレート画像保存
-                    Cv2.ImWrite(prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
+                    Cv2.ImWrite(prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", trim);
                 }
             }
             Cv2.DestroyAllWindows();
