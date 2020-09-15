@@ -11,6 +11,7 @@ namespace OpenCvVideoTester
             var _videoCapture = new VideoCapture(0);
 
             var referenceTime = DateTime.Now;
+            var cnt = 0;
             while (true)
             {
                 /*
@@ -18,12 +19,15 @@ namespace OpenCvVideoTester
                  * 処理速度の都合
                  * テンプレート画像の撮像は 2592 * 1944
                  */
-                var frameWidth = 2592;
-                var frameHeight = 1944;
+                var frameWidth = 1024;
+                var frameHeight = 768;
                 if (_videoCapture.FrameWidth != frameWidth)
                     _videoCapture.FrameWidth = frameWidth;
                 if (_videoCapture.FrameHeight != frameHeight)
                     _videoCapture.FrameHeight = frameHeight;
+
+                cnt++;
+                Console.WriteLine("設定書き込み {0}回目 {1}秒", cnt, (DateTime.Now - referenceTime).TotalSeconds);
 
                 if (_videoCapture.FrameWidth == frameWidth && _videoCapture.FrameHeight == frameHeight)
                     break;
@@ -447,6 +451,12 @@ namespace OpenCvVideoTester
             var _fps = _videoCapture.Get(VideoCaptureProperties.Fps);
             Console.WriteLine("ビデオカメラ解像度: {0} x {1} {2}fps FourCC:{3}",
                 _frameWidth, _frameHeight, _fps, _fourcc);
+            if (_fps == 0)
+            {
+                _fps = 30;
+                Console.WriteLine("ビデオカメラ解像度: {0} x {1} {2}fps FourCC:{3}",
+                    _frameWidth, _frameHeight, _fps, _fourcc);
+            }
 
             // 動画保存用
             VideoWriter videoWriter = null;
