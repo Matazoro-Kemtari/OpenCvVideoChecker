@@ -19,8 +19,11 @@ namespace OpenCvVideoTester
                  * 処理速度の都合
                  * テンプレート画像の撮像は 2592 * 1944
                  */
-                var frameWidth = 1024;
-                var frameHeight = 768;
+                var frameWidth = 2592;
+                var frameHeight = 1944;
+                var fps = 15;
+                if (_videoCapture.Fps != fps)
+                    _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
                     _videoCapture.FrameWidth = frameWidth;
                 if (_videoCapture.FrameHeight != frameHeight)
@@ -29,7 +32,7 @@ namespace OpenCvVideoTester
                 cnt++;
                 Console.WriteLine("設定書き込み {0}回目 {1}秒", cnt, (DateTime.Now - referenceTime).TotalSeconds);
 
-                if (_videoCapture.FrameWidth == frameWidth && _videoCapture.FrameHeight == frameHeight)
+                if (_videoCapture.FrameWidth == frameWidth && _videoCapture.FrameHeight == frameHeight && _videoCapture.Fps == fps)
                     break;
 
                 if ((DateTime.Now - referenceTime).TotalSeconds > 30)
@@ -445,12 +448,23 @@ namespace OpenCvVideoTester
             //    throw new InvalidOperationException("動画フォーマットに対応していません");
 
             // ビデオキャプチャー設定を表示
-            var _fourcc = string.Format("{0} ({1})", _videoCapture.FourCC, _videoCapture.Get(VideoCaptureProperties.FourCC));
+            var fourccCode = _videoCapture.Get(VideoCaptureProperties.FourCC);
+            var _fourcc = string.Format("({0})", fourccCode);
+            if (fourccCode != 22)
+                _fourcc = _videoCapture.FourCC + _fourcc;
             var _frameWidth = _videoCapture.Get(VideoCaptureProperties.FrameWidth);
             var _frameHeight = _videoCapture.Get(VideoCaptureProperties.FrameHeight);
             var _fps = _videoCapture.Get(VideoCaptureProperties.Fps);
             Console.WriteLine("ビデオカメラ解像度: {0} x {1} {2}fps FourCC:{3}",
                 _frameWidth, _frameHeight, _fps, _fourcc);
+
+
+
+            var mat = new Mat();
+            _videoCapture.Read(mat);
+            Cv2.ImWrite(DateTime.Now.ToString("yyMMddHHmmss") + string.Format("ビデオカメラ解像度{0}x{1}_{2}fps",
+                _frameWidth, _frameHeight, _fps) + ".bmp", mat);
+
             if (_fps == 0)
             {
                 _fps = 30;
