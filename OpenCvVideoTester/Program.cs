@@ -17,11 +17,11 @@ namespace OpenCvVideoTester
                 /*
                  * 通常の撮像は 1024 * 768
                  * 処理速度の都合
-                 * テンプレート画像の撮像は 2592 * 1944
+                 * テンプレート画像の撮像は 2592 * 1944 Fps 2
                  */
                 var frameWidth = 2592;
                 var frameHeight = 1944;
-                var fps = 15;
+                var fps = 2;
                 if (_videoCapture.Fps != fps)
                     _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
@@ -632,8 +632,8 @@ namespace OpenCvVideoTester
                             break;
 
                         default: // 1キー
-                            trimRect = parking1fast;
-                            prefix = nameof(parking1fast) + "_";
+                            trimRect = escalator1st;
+                            prefix = nameof(escalator1st) + "_";
                             break;
                     }
                     using var trim = frame.SubMat(trimRect);
