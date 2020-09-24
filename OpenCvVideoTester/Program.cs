@@ -15,13 +15,13 @@ namespace OpenCvVideoTester
             while (true)
             {
                 /*
-                 * 通常の撮像は 1024 * 768
+                 * 通常の撮像は 1600 * 1200 Fps 5
                  * 処理速度の都合
                  * テンプレート画像の撮像は 2592 * 1944 Fps 2
                  */
-                var frameWidth = 2592;
-                var frameHeight = 1944;
-                var fps = 2;
+                var frameWidth = 1600;
+                var frameHeight = 1200;
+                var fps = 5;
                 if (_videoCapture.Fps != fps)
                     _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
@@ -547,8 +547,8 @@ namespace OpenCvVideoTester
                 {
                     if (videoWriter == null)
                         videoWriter = new VideoWriter(
-                            DateTime.Now.ToString("yyyyMMddHHmmss") + ".m4v",
-                            FourCC.MP4V,
+                            DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
+                            VideoWriter.FourCC("ULRG"),
                             _fps,
                             new Size(_videoCapture.FrameWidth, _videoCapture.FrameHeight));
                     
