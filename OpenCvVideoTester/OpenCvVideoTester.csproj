@@ -11,4 +11,10 @@
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.4.0.20200915" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="AppSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

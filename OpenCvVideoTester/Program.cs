@@ -11,14 +11,14 @@ namespace OpenCvVideoTester
         {
             // 設定ファイルを読み込む
             var configuration = LoadConfiguration();
+
             var startingOption = configuration
                 .GetSection("AppSettings")
                 .GetValue<StartableOption>("StartableOption");
-            CapturableOption capturableOption;
-            capturableOption  = configuration
-                .GetSection("AppSettings")
-                .Get<CapturableOption>();
-            
+
+            // キャプチャーモードを読み込む
+            CapturableOption capturableOption = SwitchStartableOption(configuration, startingOption);
+
             var _videoCapture = new VideoCapture(0);
 
             var referenceTime = DateTime.Now;
@@ -30,9 +30,9 @@ namespace OpenCvVideoTester
                  * 処理速度の都合
                  * テンプレート画像の撮像は 2592 * 1944 Fps 2
                  */
-                var frameWidth = 1600;
-                var frameHeight = 1200;
-                var fps = 5;
+                var frameWidth = capturableOption.FrameWidth;
+                var frameHeight = capturableOption.FrameHeight;
+                var fps = capturableOption.Fps;
                 if (_videoCapture.Fps != fps)
                     _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
@@ -521,29 +521,32 @@ namespace OpenCvVideoTester
                 // 大きすぎて見えないので表示用に小さくする
                 using var frame_view = frame.Resize(new Size(frame.Width / 2, frame.Height / 2));
 
-                // テンプレート画像トリミング位置描画
-                // エスカレーター
-                frame_view.Rectangle(escalator1st_view, new Scalar(0, 255, 0), 2);
-                frame_view.Rectangle(escalator2nd_view, new Scalar(0, 255, 0), 2);
-                frame_view.Rectangle(escalator3rd_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 1", escalator1st_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.PutText("Trim to 2", escalator2nd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.PutText("Trim to 3", escalator3rd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                // P1
-                frame_view.Rectangle(parking1fast_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 4", parking1fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.Rectangle(parking1second_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 5", parking1second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                // P2
-                frame_view.Rectangle(parking2fast_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 6", parking2fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.Rectangle(parking2second_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 7", parking2second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                // P3
-                frame_view.Rectangle(parking3fast_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 8", parking3fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.Rectangle(parking3second_view, new Scalar(0, 255, 0), 2);
-                frame_view.PutText("Trim to 9", parking3second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                if (startingOption == StartableOption.ModeForGetTemplateImage)
+                {
+                    // テンプレート画像トリミング位置描画
+                    // エスカレーター
+                    frame_view.Rectangle(escalator1st_view, new Scalar(0, 255, 0), 2);
+                    frame_view.Rectangle(escalator2nd_view, new Scalar(0, 255, 0), 2);
+                    frame_view.Rectangle(escalator3rd_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 1", escalator1st_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    frame_view.PutText("Trim to 2", escalator2nd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    frame_view.PutText("Trim to 3", escalator3rd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    // P1
+                    frame_view.Rectangle(parking1fast_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 4", parking1fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    frame_view.Rectangle(parking1second_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 5", parking1second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    // P2
+                    frame_view.Rectangle(parking2fast_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 6", parking2fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    frame_view.Rectangle(parking2second_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 7", parking2second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    // P3
+                    frame_view.Rectangle(parking3fast_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 8", parking3fast_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                    frame_view.Rectangle(parking3second_view, new Scalar(0, 255, 0), 2);
+                    frame_view.PutText("Trim to 9", parking3second_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                }
 
                 using var win = new Window("capture", frame_view);
 
@@ -553,16 +556,16 @@ namespace OpenCvVideoTester
                     break;
                 if (key == 115) // sキー
                     // 画像の保存
-                    Cv2.ImWrite(DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
+                    Cv2.ImWrite(startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
                 if (key == 109) // mキー
                 {
                     if (videoWriter == null)
                         videoWriter = new VideoWriter(
-                            DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
+                            startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
                             VideoWriter.FourCC("ULRG"),
                             _fps,
                             new Size(_videoCapture.FrameWidth, _videoCapture.FrameHeight));
-                    
+
                     // 動画の保存
                     videoWriter.Write(frame);
                 }
@@ -573,7 +576,7 @@ namespace OpenCvVideoTester
                     Cv2.DrawKeypoints(frame, keypoint, featureImage);
                     Cv2.ImShow("feature", featureImage);
                 }
-                if(key == 100) // dキー
+                if (key == 100) // dキー
                 {
                     var directoryPath = @"..\..\..\..\..\..\..\..\200910\template";
                     // ファイル一覧を取得
@@ -656,11 +659,35 @@ namespace OpenCvVideoTester
                     Cv2.ImShow("trim", featureImage);
 
                     // テンプレート画像保存
-                    Cv2.ImWrite(prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", trim);
+                    Cv2.ImWrite(prefix + startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", trim);
                 }
             }
             Cv2.DestroyAllWindows();
             videoWriter?.Dispose();
+        }
+
+        private static CapturableOption SwitchStartableOption(IConfiguration configuration, StartableOption startingOption)
+        {
+            CapturableOption capturableOption;
+            switch (startingOption)
+            {
+                case StartableOption.ModeForGetBackgroundImage:
+                    capturableOption = configuration
+                        .GetSection("AppSettings")
+                        .GetSection("ModeForGetBackgroundImage")
+                        .Get<CapturableOption>();
+                    break;
+                case StartableOption.ModeForGetTemplateImage:
+                    capturableOption = configuration
+                        .GetSection("AppSettings")
+                        .GetSection("ModeForGetTemplateImage")
+                        .Get<CapturableOption>();
+                    break;
+                default:
+                    throw new ApplicationException("設定ファイルに不備があります");
+            }
+
+            return capturableOption;
         }
 
         static IConfiguration LoadConfiguration()

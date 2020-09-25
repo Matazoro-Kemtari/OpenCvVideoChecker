@@ -1,9 +1,9 @@
 ﻿namespace OpenCvVideoTester
 {
-    internal class CapturableOption
+    public class CapturableOption
     {
-        internal int FrameWidth { get; set; }
-        internal int FrameHeight { get; set; }
-        internal double Fps { get; set; }
+        public int FrameWidth { get; set; }
+        public int FrameHeight { get; set; }
+        public double Fps { get; set; }
     }
 }
