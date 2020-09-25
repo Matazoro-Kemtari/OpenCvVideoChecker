@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Microsoft.Extensions.Configuration;
+using OpenCvSharp;
 using System;
 using System.IO;
 
@@ -8,6 +9,16 @@ namespace OpenCvVideoTester
     {
         static void Main(string[] args)
         {
+            // 設定ファイルを読み込む
+            var configuration = LoadConfiguration();
+            var startingOption = configuration
+                .GetSection("AppSettings")
+                .GetValue<StartableOption>("StartableOption");
+            CapturableOption capturableOption;
+            capturableOption  = configuration
+                .GetSection("AppSettings")
+                .Get<CapturableOption>();
+            
             var _videoCapture = new VideoCapture(0);
 
             var referenceTime = DateTime.Now;
@@ -650,6 +661,26 @@ namespace OpenCvVideoTester
             }
             Cv2.DestroyAllWindows();
             videoWriter?.Dispose();
+        }
+
+        static IConfiguration LoadConfiguration()
+        {
+            var configBuilder = new ConfigurationBuilder();
+
+
+            configBuilder
+                // 設定ファイルのベースパスをカレントディレクトリにする
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                // Jsonファイルへのパスを設定する
+                .AddJsonFile(@"AppSettings.json");
+
+            return configBuilder.Build();
+        }
+
+        internal enum StartableOption
+        {
+            ModeForGetBackgroundImage,
+            ModeForGetTemplateImage
         }
     }
 }
