@@ -12,6 +12,9 @@ namespace OpenCvVideoTester
             // 設定ファイルを読み込む
             var configuration = LoadConfiguration();
 
+            var cameraIndex = configuration
+                .GetSection("AppSettings")
+                .GetValue<int>("CameraIndex");
             var startingOption = configuration
                 .GetSection("AppSettings")
                 .GetValue<StartableOption>("StartableOption");
@@ -19,7 +22,7 @@ namespace OpenCvVideoTester
             // キャプチャーモードを読み込む
             CapturableOption capturableOption = SwitchStartableOption(configuration, startingOption);
 
-            var _videoCapture = new VideoCapture(0);
+            var _videoCapture = new VideoCapture(cameraIndex);
 
             var referenceTime = DateTime.Now;
             var cnt = 0;
