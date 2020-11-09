@@ -476,7 +476,7 @@ namespace OpenCvVideoTester
             VideoWriter videoWriter = null;
 
             // 特徴量検出アルゴリズム
-            var feature = AKAZE.Create();
+            var feature = KAZE.Create();
 
             // テンプレート画像トリミング位置
             // エスカレーター
@@ -640,6 +640,9 @@ namespace OpenCvVideoTester
 
                     // 特徴量検出
                     using Mat grayImage = trim.CvtColor(ColorConversionCodes.BGR2GRAY);
+                    // 画像サイズを大きくする
+                    //var magnification = 4.5;
+                    //Mat expandImage = grayImage.Resize(new Size(grayImage.Width * magnification, grayImage.Height * magnification));
                     // ガンマ補正
                     var gamma = 2.5;
                     byte[] gammaLut = new byte[256];
@@ -648,19 +651,16 @@ namespace OpenCvVideoTester
                         gammaLut[i] = (byte)(255d * Math.Pow(i / 255d, 1d / gamma));
                     }
                     Mat gammaImage = new Mat();
-                    Cv2.LUT(trim, gammaLut, gammaImage);
-                    // 画像サイズを大きくする
-                    var magnification = 4;
-                    Mat expandImage = gammaImage.Resize(new Size(gammaImage.Width * magnification,
-                                                                       gammaImage.Height * magnification));
+                    Cv2.LUT(grayImage, gammaLut, gammaImage);
+                                                                       
                     // 特徴量計算
-                    var keypoint = feature.Detect(expandImage);
+                    var keypoint = feature.Detect(gammaImage);
                     using var featureImage = new Mat();
-                    Cv2.DrawKeypoints(expandImage, keypoint, featureImage);
+                    Cv2.DrawKeypoints(gammaImage, keypoint, featureImage);
 
-                    var featureImage2 = featureImage.Resize(new Size(trim.Width,
-                                                             trim.Height));
-                    Cv2.ImShow("trim", featureImage2);
+                    //var featureImage2 = featureImage.Resize(new Size(trim.Width,
+                                                             //trim.Height));
+                    Cv2.ImShow("trim", featureImage);
 
                     // テンプレート画像保存
                     Cv2.ImWrite(prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", trim);
