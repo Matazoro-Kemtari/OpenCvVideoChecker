@@ -17,11 +17,11 @@ namespace OpenCvVideoTester
                 /*
                  * 通常の撮像は 1600 * 1200 Fps 5
                  * 処理速度の都合
-                 * テンプレート画像の撮像は 2592 * 1944 Fps 2
+                 * テンプレート画像の撮像は 2592 * 1944 Fps 2(FA 2592 * 1944 Fps 6)
                  */
-                var frameWidth = 1600;
-                var frameHeight = 1200;
-                var fps = 5;
+                var frameWidth = 2592;
+                var frameHeight = 1944;
+                var fps = 6;
                 if (_videoCapture.Fps != fps)
                     _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
@@ -32,7 +32,7 @@ namespace OpenCvVideoTester
                 cnt++;
                 Console.WriteLine("設定書き込み {0}回目 {1}秒", cnt, (DateTime.Now - referenceTime).TotalSeconds);
 
-                if (_videoCapture.FrameWidth == frameWidth && _videoCapture.FrameHeight == frameHeight && _videoCapture.Fps == fps)
+                if (_videoCapture.FrameWidth == frameWidth && _videoCapture.FrameHeight == frameHeight && Math.Abs(_videoCapture.Fps - fps) < 1)
                     break;
 
                 if ((DateTime.Now - referenceTime).TotalSeconds > 30)
@@ -480,26 +480,26 @@ namespace OpenCvVideoTester
 
             // テンプレート画像トリミング位置
             // エスカレーター
-            var escalator1st = new Rect(833, 653, 540, 290);
+            var escalator1st = new Rect(360, 1000, 420, 245);
             var escalator1st_view = new Rect(escalator1st.X / 2, escalator1st.Y / 2, escalator1st.Width / 2, escalator1st.Height / 2);
-            var escalator2nd = new Rect(1560, 687, 452, 275);
+            var escalator2nd = new Rect(862, 1025, 490, 275);
             var escalator2nd_view = new Rect(escalator2nd.X / 2, escalator2nd.Y / 2, escalator2nd.Width / 2, escalator2nd.Height / 2);
-            var escalator3rd = new Rect(2058, 734, 373, 245);
+            var escalator3rd = new Rect(1475, 1045, 520, 270);
             var escalator3rd_view = new Rect(escalator3rd.X / 2, escalator3rd.Y / 2, escalator3rd.Width / 2, escalator3rd.Height / 2);
             // P1
-            var parking1fast = new Rect(1840, 314, 415, 275);
+            var parking1fast = new Rect(1957, 685, 500, 230);
             var parking1fast_view = new Rect(parking1fast.X / 2, parking1fast.Y / 2, parking1fast.Width / 2, parking1fast.Height / 2);
-            var parking1second = new Rect(2032, 237, 275, 415);
+            var parking1second = new Rect(2095, 360, 250, 510);
             var parking1second_view = new Rect(parking1second.X / 2, parking1second.Y / 2, parking1second.Width / 2, parking1second.Height / 2);
             // P2
-            var parking2fast = new Rect(1192, 194, 485, 275);
+            var parking2fast = new Rect(1355, 1612, 500, 230);
             var parking2fast_view = new Rect(parking2fast.X / 2, parking2fast.Y / 2, parking2fast.Width / 2, parking2fast.Height / 2);
-            var parking2second = new Rect(1444, 65, 275, 485);
+            var parking2second = new Rect(1082, 1465, 210, 480);
             var parking2second_view = new Rect(parking2second.X / 2, parking2second.Y / 2, parking2second.Width / 2, parking2second.Height / 2);
             // P3
-            var parking3fast = new Rect(300, 1292, 540, 290);
+            var parking3fast = new Rect(367, 1505, 420, 200);
             var parking3fast_view = new Rect(parking3fast.X / 2, parking3fast.Y / 2, parking3fast.Width / 2, parking3fast.Height / 2);
-            var parking3second = new Rect(480, 1075, 290, 540);
+            var parking3second = new Rect(435, 1370, 190, 430);
             var parking3second_view = new Rect(parking3second.X / 2, parking3second.Y / 2, parking3second.Width / 2, parking3second.Height / 2);
 
             while (true)
@@ -551,7 +551,7 @@ namespace OpenCvVideoTester
                             VideoWriter.FourCC("ULRG"),
                             _fps,
                             new Size(_videoCapture.FrameWidth, _videoCapture.FrameHeight));
-                    
+
                     // 動画の保存
                     videoWriter.Write(frame);
                 }
@@ -562,7 +562,7 @@ namespace OpenCvVideoTester
                     Cv2.DrawKeypoints(frame, keypoint, featureImage);
                     Cv2.ImShow("feature", featureImage);
                 }
-                if(key == 100) // dキー
+                if (key == 100) // dキー
                 {
                     var directoryPath = @"..\..\..\..\..\..\..\..\200910\template";
                     // ファイル一覧を取得
@@ -639,10 +639,28 @@ namespace OpenCvVideoTester
                     using var trim = frame.SubMat(trimRect);
 
                     // 特徴量検出
-                    var keypoint = feature.Detect(trim);
+                    using Mat grayImage = trim.CvtColor(ColorConversionCodes.BGR2GRAY);
+                    // ガンマ補正
+                    var gamma = 2.5;
+                    byte[] gammaLut = new byte[256];
+                    for (int i = 0; i < gammaLut.Length; i++)
+                    {
+                        gammaLut[i] = (byte)(255d * Math.Pow(i / 255d, 1d / gamma));
+                    }
+                    Mat gammaImage = new Mat();
+                    Cv2.LUT(trim, gammaLut, gammaImage);
+                    // 画像サイズを大きくする
+                    var magnification = 4;
+                    Mat expandImage = gammaImage.Resize(new Size(gammaImage.Width * magnification,
+                                                                       gammaImage.Height * magnification));
+                    // 特徴量計算
+                    var keypoint = feature.Detect(expandImage);
                     using var featureImage = new Mat();
-                    Cv2.DrawKeypoints(trim, keypoint, featureImage);
-                    Cv2.ImShow("trim", featureImage);
+                    Cv2.DrawKeypoints(expandImage, keypoint, featureImage);
+
+                    var featureImage2 = featureImage.Resize(new Size(trim.Width,
+                                                             trim.Height));
+                    Cv2.ImShow("trim", featureImage2);
 
                     // テンプレート画像保存
                     Cv2.ImWrite(prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", trim);
