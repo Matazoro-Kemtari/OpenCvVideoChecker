@@ -652,7 +652,7 @@ namespace OpenCvVideoTester
                     }
                     Mat gammaImage = new Mat();
                     Cv2.LUT(expandImage, gammaLut, gammaImage);
-                                                                       
+
                     // 特徴量計算
                     var keypoint = feature.Detect(gammaImage);
                     using var featureImage = new Mat();
@@ -660,7 +660,7 @@ namespace OpenCvVideoTester
                     featureImage.PutText("keypoint:" + keypoint.Length.ToString(), new Point(5, 50), HersheyFonts.HersheySimplex, 1, Scalar.Red);
 
                     //var featureImage2 = featureImage.Resize(new Size(trim.Width,
-                                                             //trim.Height));
+                    //trim.Height));
                     Cv2.ImShow("trim", featureImage);
 
                     // テンプレート画像保存
