@@ -462,6 +462,7 @@ namespace OpenCvVideoTester
 
             var mat = new Mat();
             _videoCapture.Read(mat);
+            Cv2.Rotate(mat, mat, RotateFlags.Rotate90Clockwise);
             Cv2.ImWrite(DateTime.Now.ToString("yyMMddHHmmss") + string.Format("ビデオカメラ解像度{0}x{1}_{2}fps",
                 _frameWidth, _frameHeight, _fps) + ".bmp", mat);
 
@@ -478,22 +479,24 @@ namespace OpenCvVideoTester
             // 特徴量検出アルゴリズム
             var feature = KAZE.Create();
 
+            var magnification = 0.35;
+
             // テンプレート画像トリミング位置
             // エスカレーター
-            var escalator1st = new Rect(105, 180, 817, 466);
-            var escalator1st_view = new Rect(escalator1st.X / 2, escalator1st.Y / 2, escalator1st.Width / 2, escalator1st.Height / 2);
-            var escalator2nd = new Rect(924, 138, 1006, 446);
-            var escalator2nd_view = new Rect(escalator2nd.X / 2, escalator2nd.Y / 2, escalator2nd.Width / 2, escalator2nd.Height / 2);
+            var escalator1st = new Rect(394, 462, 1130, 549);
+            var escalator1st_view = new Rect((int)(escalator1st.X * magnification), (int)(escalator1st.Y * magnification), (int)(escalator1st.Width * magnification), (int)(escalator1st.Height * magnification));
+            //var escalator2nd = new Rect(924, 138, 1006, 446);
+            //var escalator2nd_view = new Rect(escalator2nd.X / 2, escalator2nd.Y / 2, escalator2nd.Width / 2, escalator2nd.Height / 2);
             //var escalator3rd = new Rect(1495, 293, 811, 325);
             //var escalator3rd_view = new Rect(escalator3rd.X / 2, escalator3rd.Y / 2, escalator3rd.Width / 2, escalator3rd.Height / 2);
             // P1
-            var parking1fast = new Rect(605, 828, 396, 913);
-            var parking1fast_view = new Rect(parking1fast.X / 2, parking1fast.Y / 2, parking1fast.Width / 2, parking1fast.Height / 2);
+            var parking1fast = new Rect(291, 1300, 600, 1237);
+            var parking1fast_view = new Rect((int)(parking1fast.X * magnification ), (int)(parking1fast.Y * magnification ), (int)(parking1fast.Width * magnification), (int)(parking1fast.Height * magnification));
             //var parking1second = new Rect(118, 897, 301, 604);
             //var parking1second_view = new Rect(parking1second.X / 2, parking1second.Y / 2, parking1second.Width / 2, parking1second.Height / 2);
             // P2
-            var parking2fast = new Rect(1185, 828, 396, 913);
-            var parking2fast_view = new Rect(parking2fast.X / 2, parking2fast.Y / 2, parking2fast.Width / 2, parking2fast.Height / 2);
+            var parking2fast = new Rect(1098, 1300, 600, 1237);
+            var parking2fast_view = new Rect((int)(parking2fast.X * magnification), (int)(parking2fast.Y * magnification ), (int)(parking2fast.Width * magnification), (int)(parking2fast.Height * magnification));
             //var parking2second = new Rect(1315, 977, 315, 763);
             //var parking2second_view = new Rect(parking2second.X / 2, parking2second.Y / 2, parking2second.Width / 2, parking2second.Height / 2);
             // P3
@@ -506,17 +509,18 @@ namespace OpenCvVideoTester
             {
                 using var frame = new Mat();
                 _videoCapture.Read(frame);
+                Cv2.Rotate(frame, frame, RotateFlags.Rotate90Clockwise);
 
                 // 大きすぎて見えないので表示用に小さくする
-                using var frame_view = frame.Resize(new Size(frame.Width / 2, frame.Height / 2));
+                using var frame_view = frame.Resize(new Size(), magnification, magnification);
 
                 // テンプレート画像トリミング位置描画
                 // エスカレーター
                 frame_view.Rectangle(escalator1st_view, new Scalar(0, 255, 0), 2);
-                frame_view.Rectangle(escalator2nd_view, new Scalar(0, 255, 0), 2);
+                //frame_view.Rectangle(escalator2nd_view, new Scalar(0, 255, 0), 2);
                 //frame_view.Rectangle(escalator3rd_view, new Scalar(0, 255, 0), 2);
                 frame_view.PutText("Trim to 1", escalator1st_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
-                frame_view.PutText("Trim to 2", escalator2nd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
+                //frame_view.PutText("Trim to 2", escalator2nd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
                 //frame_view.PutText("Trim to 3", escalator3rd_view.Location, HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255));
                 // P1
                 frame_view.Rectangle(parking1fast_view, new Scalar(0, 255, 0), 2);
@@ -591,10 +595,10 @@ namespace OpenCvVideoTester
                     string prefix = string.Empty;
                     switch (key)
                     {
-                        case 50: // 2キー
-                            trimRect = escalator2nd;
-                            prefix = nameof(escalator2nd) + "_";
-                            break;
+                        //case 50: // 2キー
+                        //    trimRect = escalator2nd;
+                        //    prefix = nameof(escalator2nd) + "_";
+                        //    break;
 
                         case 51: // 3キー
                             trimRect = parking1fast;
@@ -641,8 +645,8 @@ namespace OpenCvVideoTester
                     // 特徴量検出
                     using Mat grayImage = trim.CvtColor(ColorConversionCodes.BGR2GRAY);
                     // 画像サイズを大きくする
-                    var magnification = 2;
-                    Mat expandImage = grayImage.Resize(new Size(grayImage.Width * magnification, grayImage.Height * magnification));
+                    var temp_Magnification = 2;
+                    Mat expandImage = grayImage.Resize(new Size(grayImage.Width * temp_Magnification, grayImage.Height * temp_Magnification));
                     // ガンマ補正
                     var gamma = 1.8;
                     byte[] gammaLut = new byte[256];

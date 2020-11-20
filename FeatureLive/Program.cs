@@ -7,7 +7,7 @@ namespace FeatureLive
 {
     class Program
     {
-        static VideoCapture camera = new VideoCapture(0);
+        static VideoCapture camera = new VideoCapture(1);
 
         static void Main(string[] args)
         {
@@ -17,13 +17,13 @@ namespace FeatureLive
             // テンプレート画像
             var _path = Path.Combine(
                 @"..\..\..\..",
-                @"OpenCvVideoTester\bin\Debug\netcoreapp3.1",
-                "parking1fast_20201109102637777.bmp");
-            using var tempImg = new Mat(_path);
+                @"OpenCvVideoTester\bin\Debug\netcoreapp3.1\MatchFeature\Escalator",
+                "C-hr_escalator1st.bmp");
+            using var tempImg = new Mat(_path).Resize(new Size(), 2, 2);
 
             Mat tempDst = new Mat();
             using var tempWin = new Window("Template");
-            tempWin.CreateTrackbar("Gamma", 180, 200, (pos) =>
+            tempWin.CreateTrackbar("Gamma", 125, 200, (pos) =>
             {
                 double gammaPower = pos / 100d;
                 // ガンマ補正
@@ -37,21 +37,27 @@ namespace FeatureLive
             double gammaPower = 1.8;
             double distanceThreshold = 0.8;
             using var win = new Window("feature");
-            win.CreateTrackbar("Gamma", 180, 200, (pos) =>
+            win.CreateTrackbar("Gamma", 125, 200, (pos) =>
             {
                 gammaPower = pos / 100d;
-                dst = MatcheWindow(tempDst, gammaPower, distanceThreshold);
-                win.ShowImage(dst);
             });
-            win.CreateTrackbar("Distance", 80, 100, (pos) =>
+            win.CreateTrackbar("Distance", 75, 100, (pos) =>
             {
                 distanceThreshold = pos / 100d;
-                dst = MatcheWindow(tempDst, gammaPower, distanceThreshold);
-                win.ShowImage(dst);
                 // win.Image = dst; // ShowImageのかわりにこう書いてもOK
             });
 
-            Cv2.WaitKey();
+            while (true)
+            {
+                dst = MatcheWindow(tempDst, gammaPower, distanceThreshold);
+                win.ShowImage(dst);
+
+                var key = Cv2.WaitKey(500);
+                if (key == 27)
+                    break;
+            }
+            Cv2.DestroyAllWindows();
+            camera?.Dispose();
         }
 
         static Mat MatcheWindow(Mat template,
@@ -61,9 +67,12 @@ namespace FeatureLive
             using var source = new Mat();
             // カメラ画像取り込み
             camera.Read(source);
+            //Cv2.Resize(source, source, new Size(2592, 1944));
+            Cv2.Rotate(source, source, RotateFlags.Rotate90Clockwise);
+            using var trim = source;//.SubMat(new Rect(20, 195, 1880, 873));
 
             // ガンマ補正
-            using var gammaDst = AdjustGamma(source, gammaPower);
+            using var gammaDst = AdjustGamma(trim, gammaPower);
 
             // テンプレート画像の特徴量計算
             (var tempKey, var tempDesc) = FeatureCommand(template);
@@ -75,18 +84,20 @@ namespace FeatureLive
             // 特徴量マッチング 上位2位
             DMatch[][] matches = matcher.KnnMatch(tempDesc, srcDesc, 2);
 
-            distanceThreshold = distanceThreshold / 100d;
             // 閾値で対応点を絞り込む
             List<DMatch> goodMatches;
             List<Point2f> goodTemplateKeyPoints, goodSourceKeyPoints;
             (goodMatches, goodTemplateKeyPoints, goodSourceKeyPoints) =
             FilterMatchGoodScore(tempKey, srcKey, matches, distanceThreshold);
+            Console.WriteLine("matches: {0},goodMatches: {1}", matches.Length, goodMatches.Count);
 
             //マッチングした特徴量同士を線でつなぐ
-            var output = new Mat();
+            using var output = new Mat();
             Cv2.DrawMatches(template, tempKey, gammaDst, srcKey, goodMatches, output);
+            var output2 = new Mat();
+            Cv2.Resize(output, output2, new Size(), 0.5, 0.5);
 
-            return output;
+            return output2;
         }
 
         static void SetCamera(VideoCapture videoCapture)
@@ -100,9 +111,9 @@ namespace FeatureLive
                  * 処理速度の都合
                  * テンプレート画像の撮像は 2592 * 1944 Fps 2(FA 2592 * 1944 Fps 6)
                  */
-                var frameWidth = 800;
-                var frameHeight = 600;
-                var fps = 30;
+                var frameWidth = 2592;
+                var frameHeight = 1944;
+                var fps = 6;
                 if (videoCapture.Fps != fps)
                     videoCapture.Fps = fps;
                 if (videoCapture.FrameWidth != frameWidth)
@@ -126,13 +137,10 @@ namespace FeatureLive
             // 特徴量検出アルゴリズム
             var feature = AKAZE.Create();
 
-            var magnification = 1;
-            using var _ex = source.Resize(new Size(source.Width * magnification, source.Height * magnification));
-
             // 特徴量計算
             KeyPoint[] keyPoints;            // 特徴点
             Mat descriptor = new Mat();      // 特徴量
-            feature.DetectAndCompute(_ex, null, out keyPoints, descriptor);
+            feature.DetectAndCompute(source, null, out keyPoints, descriptor);
             //var _featureImage = new Mat();
             //Cv2.DrawKeypoints(_temp_gammaImage, _keypoint, _featureImage);
 
