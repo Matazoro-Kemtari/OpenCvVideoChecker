@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace FeatureLive
 {
@@ -17,8 +18,8 @@ namespace FeatureLive
             // テンプレート画像
             var _path = Path.Combine(
                 @"..\..\..\..",
-                @"OpenCvVideoTester\bin\Debug\netcoreapp3.1\MatchFeature\Escalator",
-                "C-hr_escalator1st.bmp");
+                @"OpenCvVideoTester\bin\Debug\netcoreapp3.1",
+                "Prius_escalator1st.bmp");
             using var tempImg = new Mat(_path).Resize(new Size(), 2, 2);
 
             Mat tempDst = new Mat();
@@ -90,6 +91,19 @@ namespace FeatureLive
             (goodMatches, goodTemplateKeyPoints, goodSourceKeyPoints) =
             FilterMatchGoodScore(tempKey, srcKey, matches, distanceThreshold);
             Console.WriteLine("matches: {0},goodMatches: {1}", matches.Length, goodMatches.Count);
+
+            // ロバスト推定してホモグラフィーを算出する
+            Mat homoGraphy = LookupHomoGraphy(goodTemplateKeyPoints, goodSourceKeyPoints);
+
+            // 対象物体画像からコーナーを取得する
+            var cornerPoints = LookupCornerFromTargetObjectImage(template, homoGraphy);
+            var rect = new Rect(cornerPoints[0].X,
+                                cornerPoints[0].Y,
+                                template.Width / 2,
+                                template.Height /2);
+            // 枠描画
+            gammaDst.Rectangle(rect, Scalar.Pink, 3);
+
 
             //マッチングした特徴量同士を線でつなぐ
             using var output = new Mat();
@@ -189,6 +203,61 @@ namespace FeatureLive
                 }
             }
             return (goodMatches, goodTemplateKeyPoints, goodSourceKeyPoints);
+        }
+
+        /// <summary>
+        /// ロバスト推定してホモグラフィーを算出する
+        /// </summary>
+        /// <param name="goodMatches"></param>
+        /// <param name="goodTemplateKeyPoints"></param>
+        /// <param name="goodSourceKeyPoints"></param>
+        /// <param name="masks"></param>
+        /// <returns></returns>
+        static Mat LookupHomoGraphy(
+             List<Point2f> goodTemplateKeyPoints,
+             List<Point2f> goodSourceKeyPoints)
+        {
+            var homoGraphy = new Mat();
+            if (goodTemplateKeyPoints.Count() > 0 && goodSourceKeyPoints.Count() > 0)
+            {
+                homoGraphy = Cv2.FindHomography(InputArray.Create(goodTemplateKeyPoints),
+                                                InputArray.Create(goodSourceKeyPoints),
+                                                HomographyMethods.Ransac,
+                                                2.5);
+            }
+            return homoGraphy;
+        }
+
+        /// <summary>
+        /// 対象物体画像からコーナーを取得する
+        /// </summary>
+        /// <param name="template">対象物体画像</param>
+        /// <param name="homoGraphy">ホモグラフィ行列</param>
+        /// <returns></returns>
+        static Point[] LookupCornerFromTargetObjectImage(Mat template, Mat homoGraphy)
+        {
+            if (homoGraphy.Empty())
+                return null;
+
+            // 対象物体画像からコーナーを取得 ( 対象物体が"検出"される )
+            var cornerPoints = new Point2f[]
+            {
+                new Point2f(0, 0),
+                new Point2f(template.Cols, 0),
+                new Point2f(template.Cols, template.Rows),
+                new Point2f(0, template.Rows)
+            };
+
+            // シーンへの射影を推定
+            var scene_corners = Cv2.PerspectiveTransform(cornerPoints, homoGraphy);
+
+            return new Point[]
+            {
+                new Point(scene_corners[0].X, scene_corners[0].Y),
+                new Point(scene_corners[1].X, scene_corners[1].Y),
+                new Point(scene_corners[2].X, scene_corners[2].Y),
+                new Point(scene_corners[3].X, scene_corners[3].Y),
+            };
         }
 
         /// <summary>
