@@ -483,7 +483,8 @@ namespace OpenCvVideoTester
 
             // テンプレート画像トリミング位置
             // エスカレーター
-            var escalator1st = new Rect(394, 430, 1150, 590);
+            var escalator1st = new Rect(394, 300, 1150, 700);// リフト用
+            //var escalator1st = new Rect(394, 430, 1150, 590);
             var escalator1st_view = new Rect((int)(escalator1st.X * magnification), (int)(escalator1st.Y * magnification), (int)(escalator1st.Width * magnification), (int)(escalator1st.Height * magnification));
             //var escalator2nd = new Rect(924, 138, 1006, 446);
             //var escalator2nd_view = new Rect(escalator2nd.X / 2, escalator2nd.Y / 2, escalator2nd.Width / 2, escalator2nd.Height / 2);
