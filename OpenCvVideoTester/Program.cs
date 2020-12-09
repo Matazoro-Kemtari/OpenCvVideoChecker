@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using Microsoft.Extensions.Configuration;
+using OpenCvSharp;
 using System;
 using System.IO;
 
@@ -8,7 +9,9 @@ namespace OpenCvVideoTester
     {
         static void Main(string[] args)
         {
+
             var _videoCapture = new VideoCapture(1);
+
 
             var referenceTime = DateTime.Now;
             var cnt = 0;
@@ -22,6 +25,7 @@ namespace OpenCvVideoTester
                 var frameWidth = 2592;
                 var frameHeight = 1944;
                 var fps = 6;
+
                 if (_videoCapture.Fps != fps)
                     _videoCapture.Fps = fps;
                 if (_videoCapture.FrameWidth != frameWidth)
@@ -514,6 +518,7 @@ namespace OpenCvVideoTester
                 // 大きすぎて見えないので表示用に小さくする
                 using var frame_view = frame.Resize(new Size(), magnification, magnification);
 
+
                 // テンプレート画像トリミング位置描画
                 // エスカレーター
                 frame_view.Rectangle(escalator1st_view, new Scalar(0, 255, 0), 2);
@@ -546,12 +551,12 @@ namespace OpenCvVideoTester
                     break;
                 if (key == 115) // sキー
                     // 画像の保存
-                    Cv2.ImWrite(DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
+                    Cv2.ImWrite(startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
                 if (key == 109) // mキー
                 {
                     if (videoWriter == null)
                         videoWriter = new VideoWriter(
-                            DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
+                            startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
                             VideoWriter.FourCC("ULRG"),
                             _fps,
                             new Size(_videoCapture.FrameWidth, _videoCapture.FrameHeight));
@@ -671,10 +676,55 @@ namespace OpenCvVideoTester
                     var bmpName = prefix + DateTime.Now.ToString("yyyyMMddHHmmssfff");
                     Cv2.ImWrite(bmpName + ".bmp", trim);
                     Cv2.ImWrite(bmpName + "_特徴量.bmp", featureImage);
+
                 }
             }
             Cv2.DestroyAllWindows();
             videoWriter?.Dispose();
+        }
+
+        private static CapturableOption SwitchStartableOption(IConfiguration configuration, StartableOption startingOption)
+        {
+            CapturableOption capturableOption;
+            switch (startingOption)
+            {
+                case StartableOption.ModeForGetBackgroundImage:
+                    capturableOption = configuration
+                        .GetSection("AppSettings")
+                        .GetSection("ModeForGetBackgroundImage")
+                        .Get<CapturableOption>();
+                    break;
+                case StartableOption.ModeForGetTemplateImage:
+                    capturableOption = configuration
+                        .GetSection("AppSettings")
+                        .GetSection("ModeForGetTemplateImage")
+                        .Get<CapturableOption>();
+                    break;
+                default:
+                    throw new ApplicationException("設定ファイルに不備があります");
+            }
+
+            return capturableOption;
+        }
+
+        static IConfiguration LoadConfiguration()
+        {
+            var configBuilder = new ConfigurationBuilder();
+
+
+            configBuilder
+                // 設定ファイルのベースパスをカレントディレクトリにする
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                // Jsonファイルへのパスを設定する
+                .AddJsonFile(@"AppSettings.json");
+
+            return configBuilder.Build();
+        }
+
+        internal enum StartableOption
+        {
+            ModeForGetBackgroundImage,
+            ModeForGetTemplateImage
         }
     }
 }
