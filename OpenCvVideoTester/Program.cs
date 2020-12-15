@@ -552,12 +552,12 @@ namespace OpenCvVideoTester
                     break;
                 if (key == 115) // sキー
                     // 画像の保存
-                    Cv2.ImWrite(startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
+                    Cv2.ImWrite(DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".bmp", frame);
                 if (key == 109) // mキー
                 {
                     if (videoWriter == null)
                         videoWriter = new VideoWriter(
-                            startingOption.ToString() + DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
+                            DateTime.Now.ToString("yyyyMMddHHmmss") + ".avi",
                             VideoWriter.FourCC("ULRG"),
                             _fps,
                             new Size(_videoCapture.FrameWidth, _videoCapture.FrameHeight));
